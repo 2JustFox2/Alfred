@@ -77,3 +77,9 @@ export default tseslint.config([
 Стек:
 - Vite
 - React
+
+# Запуск
+
+```
+npm run dev
+```
