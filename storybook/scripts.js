@@ -1,7 +1,8 @@
-window.SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const recognition = new SpeechRecognition();
+
+recognition.lang = "ru-RU";
 recognition.interimResults = true;
 
 let p = document.createElement("p");
