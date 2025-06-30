@@ -1,9 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
-const VoiceToText = () => {
-  const [isListening, setIsListening] = useState(false);
-  const [text, setText] = useState("");
-  const [error, setError] = useState<string | null>(null);
+const VoiceToText = ({isListening, setIsListening, setText, setError}) => {
 
   // Создаем распознаватель речи
   const recognitionRef = React.useRef<SpeechRecognition | null>(null);
@@ -27,7 +24,7 @@ const VoiceToText = () => {
     // Настройки
     recognition.continuous = true; // Постоянное распознавание
     recognition.interimResults = true; // Промежуточные результаты
-    recognition.lang = "ru-RU"; // Язык (можно менять)
+    // recognition.lang = "ru-RU"; // Язык (можно менять)
 
     // Обработчики событий
     recognition.onresult = (event) => {
@@ -56,9 +53,9 @@ const VoiceToText = () => {
         recognitionRef.current.stop();
       }
     };
-  }, []);
+  }, [setError, setIsListening, setText]);
 
-  const toggleListening = () => {
+  return function toggleListening() {
     if (!recognitionRef.current) return;
 
     if (isListening) {
@@ -70,19 +67,6 @@ const VoiceToText = () => {
       setError(null);
     }
   };
-
-  return (
-    <div>
-      <h2>Голос в текст</h2>
-      <button onClick={toggleListening}>
-        {isListening ? "Остановить" : "Начать запись"}
-      </button>
-      <div>
-        <p>{text}</p>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-      </div>
-    </div>
-  );
 };
 
 export default VoiceToText;

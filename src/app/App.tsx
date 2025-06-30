@@ -1,6 +1,6 @@
-// import { useState } from 'react'
 import './styles/App.css'
 import { Microphone_button } from '../features/speech-recognition'
+import { VoiceButton } from '../widgets'
 
 // console.log(microphone_button())
 
@@ -9,18 +9,8 @@ function App() {
 
   return (
     <>
-      {/* <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div> */}
-      {/* <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p> */}
       <Microphone_button/>
+      <VoiceButton/>
     </>
   )
 }
