@@ -25,6 +25,7 @@ export class ClapDetector {
             this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             this.microphone = this.audioContext.createMediaStreamSource(this.stream);
             this.microphone.connect(this.analyser);
+            console.log(this.microphone)
         } catch (error) {
             console.error("Error initializing microphone:", error);
             throw error

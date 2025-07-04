@@ -67,7 +67,6 @@ const VoiceToText = ({setIsListening, setText, setError}) => {
   //     setError(null);
   //   }
   // };
-  console.log(recognitionRef)
   return recognitionRef
 };
 

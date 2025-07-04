@@ -1,5 +1,6 @@
 import { Button } from "../../shared/button";
 import { VoiceToText } from "../../features/speech-recognition";
+import { ClapDetector } from "../../features/clap-detection/model/clap-detector.service";
 import { useState } from "react";
 
 export default function VoiceButton() {
@@ -13,12 +14,18 @@ export default function VoiceButton() {
     setError,
   });
 
-  console.log("VoiceToText ref:", recognitionRef);
+  const clapDetector = new ClapDetector()
 
   function startListening() {
     console.log("startListening called");
     try {
+      // start clap detctor
+      clapDetector.start(()=> {
+        console.log('clapDetector init')
+      })
+      // start voice to text
       recognitionRef.current?.start();
+      
       setIsListening(true);
       setError(null);
     } catch (error) {
@@ -29,7 +36,11 @@ export default function VoiceButton() {
   function stopListening() {
     console.log("stopListening called");
     try {
+      // start clap detctor
+      clapDetector.stop()
+      // start voice to text
       recognitionRef.current?.stop();
+
       setIsListening(false);
     } catch (error) {
       console.error("stopListening error:", error);
