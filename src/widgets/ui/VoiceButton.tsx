@@ -1,6 +1,10 @@
 import { Button } from "../../shared/button";
+import { Circle } from "../../shared/circle";
 import { VoiceToText } from "../../features/speech-recognition";
-import { startClapDetectorListening, stopClapDetectorListening } from "../../features/clap-detection/model/clap-detector.service";
+import {
+  startClapDetector,
+  stopClapDetector,
+} from "../../features/clap-detection/";
 import { useState } from "react";
 import React from "react";
 
@@ -11,7 +15,21 @@ export default function VoiceButton() {
 
   const stream = React.useRef<MediaStream | null>(null);
   const mediaRecorder = React.useRef<MediaRecorder | null>(null);
+  const audioContext = React.useRef<AudioContext | null>(null);
+  const [stopUpdateVolume, setStopUpdateVolume] = useState<number | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [volume, setVolume] = useState<number>(0);
+  const clapDetectorComponent = {
+    stream,
+    mediaRecorder,
+    isRecording,
+    setIsRecording,
+    audioContext,
+    stopUpdateVolume,
+    setStopUpdateVolume,
+    volume,
+    setVolume,
+  };
 
   const recognitionRef = VoiceToText({
     setIsListening,
@@ -19,15 +37,13 @@ export default function VoiceButton() {
     setError,
   });
 
-  recognitionRef.current?.stop();
-
   async function startListening() {
     console.log("startListening called");
     try {
       // start clap detctor
-      await startClapDetectorListening({stream, mediaRecorder, isRecording, setIsRecording});
+      await startClapDetector(clapDetectorComponent);
       // start voice to text
-      // recognitionRef.current?.start();
+      recognitionRef.current?.start();
 
       setIsListening(true);
     } catch (error) {
@@ -39,9 +55,9 @@ export default function VoiceButton() {
     console.log("stopListening called");
     try {
       // start clap detctor
-      await stopClapDetectorListening({stream, mediaRecorder, isRecording, setIsRecording});
+      await stopClapDetector(clapDetectorComponent);
       // start voice to text
-      // recognitionRef.current?.stop();
+      recognitionRef.current?.stop();
 
       setIsListening(false);
     } catch (error) {
@@ -58,10 +74,15 @@ export default function VoiceButton() {
     }
   }
 
-  return Button({
-    toggleListening,
-    isListening,
-    text,
-    error,
-  });
+  return (
+    <>
+      {Circle(volume)}
+      {Button({
+        toggleListening,
+        isListening,
+        text,
+        error,
+      })}
+    </>
+  );
 }

@@ -1,7 +1,7 @@
 function Button({toggleListening, isListening, text, error}) {
 
   return (
-    <div>
+    <div style={{zIndex: "1"}}>
       <h2>Голос в текст</h2>
       <button onClick={toggleListening}>
         {isListening ? "Остановить" : "Начать запись"}

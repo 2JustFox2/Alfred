@@ -1,3 +1,6 @@
-import { ClapDetector } from "./model/clap-detector.service";
+import {
+  startClapDetector,
+  stopClapDetector,
+} from "./model/clap-detector.service";
 
-export { ClapDetector }
+export { startClapDetector, stopClapDetector };
