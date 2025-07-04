@@ -16,18 +16,15 @@ export default function VoiceButton() {
 
   const clapDetector = new ClapDetector()
 
-  function startListening() {
+  async function startListening() {
     console.log("startListening called");
     try {
       // start clap detctor
-      clapDetector.start(()=> {
-        console.log('clapDetector init')
-      })
+      await clapDetector.startListening()
       // start voice to text
-      recognitionRef.current?.start();
+      // recognitionRef.current?.start();
       
       setIsListening(true);
-      setError(null);
     } catch (error) {
       console.error("startListening error:", error);
     }
@@ -37,9 +34,9 @@ export default function VoiceButton() {
     console.log("stopListening called");
     try {
       // start clap detctor
-      clapDetector.stop()
+      clapDetector.stopListening()
       // start voice to text
-      recognitionRef.current?.stop();
+      // recognitionRef.current?.stop();
 
       setIsListening(false);
     } catch (error) {
