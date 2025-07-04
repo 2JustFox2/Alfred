@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-const VoiceToText = ({isListening, setIsListening, setText, setError}) => {
+const VoiceToText = ({setIsListening, setText, setError}) => {
 
   // Создаем распознаватель речи
   const recognitionRef = React.useRef<SpeechRecognition | null>(null);
@@ -55,18 +55,20 @@ const VoiceToText = ({isListening, setIsListening, setText, setError}) => {
     };
   }, [setError, setIsListening, setText]);
 
-  return function toggleListening() {
-    if (!recognitionRef.current) return;
+  // return function toggleListening() {
+  //   if (!recognitionRef.current) return;
 
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      recognitionRef.current.start();
-      setIsListening(true);
-      setError(null);
-    }
-  };
+  //   if (isListening) {
+  //     recognitionRef.current.stop();
+  //     setIsListening(false);
+  //   } else {
+  //     recognitionRef.current.start();
+  //     setIsListening(true);
+  //     setError(null);
+  //   }
+  // };
+  console.log(recognitionRef)
+  return recognitionRef
 };
 
-export default VoiceToText;
+export default VoiceToText

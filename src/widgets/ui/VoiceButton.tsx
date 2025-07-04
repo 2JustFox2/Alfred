@@ -7,12 +7,48 @@ export default function VoiceButton() {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const toggleListening = VoiceToText({
-    isListening,
+  const recognitionRef = VoiceToText({
     setIsListening,
     setText,
     setError,
   });
-  
-  return Button({ toggleListening, isListening, text, error });
+
+  console.log("VoiceToText ref:", recognitionRef);
+
+  function startListening() {
+    console.log("startListening called");
+    try {
+      recognitionRef.current?.start();
+      setIsListening(true);
+      setError(null);
+    } catch (error) {
+      console.error("startListening error:", error);
+    }
+  }
+
+  function stopListening() {
+    console.log("stopListening called");
+    try {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } catch (error) {
+      console.error("stopListening error:", error);
+    }
+  }
+
+  function toggleListening() {
+    console.log("toggleListening called, isListening:", isListening);
+    if (!isListening) {
+      startListening();
+    } else {
+      stopListening();
+    }
+  }
+
+  return Button({
+    toggleListening,
+    isListening,
+    text,
+    error
+  })
 }

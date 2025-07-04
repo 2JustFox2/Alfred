@@ -1,5 +1,4 @@
 function Button({toggleListening, isListening, text, error}) {
-
   return (
     <div>
       <h2>Голос в текст</h2>

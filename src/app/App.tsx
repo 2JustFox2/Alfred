@@ -1,5 +1,4 @@
 import './styles/App.css'
-import { Microphone_button } from '../features/speech-recognition'
 import { VoiceButton } from '../widgets'
 
 // console.log(microphone_button())
@@ -9,7 +8,6 @@ function App() {
 
   return (
     <>
-      <Microphone_button/>
       <VoiceButton/>
     </>
   )
