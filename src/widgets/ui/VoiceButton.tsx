@@ -1,12 +1,17 @@
 import { Button } from "../../shared/button";
 import { VoiceToText } from "../../features/speech-recognition";
-import { ClapDetector } from "../../features/clap-detection/model/clap-detector.service";
+import { startClapDetectorListening, stopClapDetectorListening } from "../../features/clap-detection/model/clap-detector.service";
 import { useState } from "react";
+import React from "react";
 
 export default function VoiceButton() {
   const [isListening, setIsListening] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const stream = React.useRef<MediaStream | null>(null);
+  const mediaRecorder = React.useRef<MediaRecorder | null>(null);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
 
   const recognitionRef = VoiceToText({
     setIsListening,
@@ -14,27 +19,27 @@ export default function VoiceButton() {
     setError,
   });
 
-  const clapDetector = new ClapDetector()
+  recognitionRef.current?.stop();
 
   async function startListening() {
     console.log("startListening called");
     try {
       // start clap detctor
-      await clapDetector.startListening()
+      await startClapDetectorListening({stream, mediaRecorder, isRecording, setIsRecording});
       // start voice to text
       // recognitionRef.current?.start();
-      
+
       setIsListening(true);
     } catch (error) {
       console.error("startListening error:", error);
     }
   }
 
-  function stopListening() {
+  async function stopListening() {
     console.log("stopListening called");
     try {
       // start clap detctor
-      clapDetector.stopListening()
+      await stopClapDetectorListening({stream, mediaRecorder, isRecording, setIsRecording});
       // start voice to text
       // recognitionRef.current?.stop();
 
@@ -57,6 +62,6 @@ export default function VoiceButton() {
     toggleListening,
     isListening,
     text,
-    error
-  })
+    error,
+  });
 }

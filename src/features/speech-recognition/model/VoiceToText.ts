@@ -55,18 +55,6 @@ const VoiceToText = ({setIsListening, setText, setError}) => {
     };
   }, [setError, setIsListening, setText]);
 
-  // return function toggleListening() {
-  //   if (!recognitionRef.current) return;
-
-  //   if (isListening) {
-  //     recognitionRef.current.stop();
-  //     setIsListening(false);
-  //   } else {
-  //     recognitionRef.current.start();
-  //     setIsListening(true);
-  //     setError(null);
-  //   }
-  // };
   return recognitionRef
 };
 
