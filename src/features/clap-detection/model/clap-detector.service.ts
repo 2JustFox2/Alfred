@@ -32,7 +32,7 @@ async function initMicrophone({
     audioContext.current = new AudioContext();
     const source = audioContext.current.createMediaStreamSource(stream.current);
     const analyser = audioContext.current.createAnalyser();
-    analyser.fftSize = 2048;
+    analyser.fftSize = 512;
 
     source.connect(analyser);
     analyser.connect(audioContext.current.destination);
@@ -59,8 +59,10 @@ async function startClapDetector({
   setIsRecording,
   audioContext,
   setStopUpdateVolume,
-  // volume,
   setVolume,
+  setDataArray,
+  lastClapTime,
+  setLastClapTime,
 }) {
   if (isRecording) return;
   setIsRecording(true);
@@ -85,17 +87,39 @@ async function startClapDetector({
       }
       const average = sum / bufferLength;
       const volume = average / 256;
-      setVolume(volume)
 
-      if (volume > 0.2) {
-        // console.log('Хлопок')
+      const highFreqStart = Math.floor(
+        2000 / audioContext.current.sampleRate / analyser.fftSize
+      );
+      const highFreqEnd = Math.floor(
+        4000 / audioContext.current.sampleRate / analyser.fftSize
+      );
+
+      let highFreqEnergy = 0;
+      for (let i = highFreqStart; i <= highFreqEnd; i++) {
+        highFreqEnergy += dataArray[i];
       }
-      console.log("Громкость: " + volume);
+      const avgHighFreqEnergy =
+        highFreqEnergy / (highFreqEnd - highFreqStart + 1);
 
-      setStopUpdateVolume(window.requestAnimationFrame(updateVolume))
+      const CLAP_THRESHOLD = 150;
+      const CLAP_COOLDOWN_MS = 500;
+
+      if (
+        avgHighFreqEnergy > CLAP_THRESHOLD &&
+        Date.now() - lastClapTime > CLAP_COOLDOWN_MS
+      ) {
+        console.log("Хлопок обнаружен! 👏");
+        lastClapTime = Date.now()
+        setLastClapTime(lastClapTime);
+      }
+
+      setVolume(volume);
+      setDataArray(dataArray);
+      setStopUpdateVolume(window.requestAnimationFrame(updateVolume));
     }
 
-    updateVolume()
+    updateVolume();
 
     if (!mediaRecorder.current) {
       throw new Error("MediaRecorder not initialized");
@@ -121,7 +145,7 @@ async function stopClapDetector({
 
   try {
     if (stopUpdateVolume) {
-      console.log(`stopUpdateVolume ${stopUpdateVolume}`)
+      console.log(`stopUpdateVolume ${stopUpdateVolume}`);
       window.cancelAnimationFrame(stopUpdateVolume);
       setStopUpdateVolume(null);
     }

@@ -19,6 +19,8 @@ export default function VoiceButton() {
   const [stopUpdateVolume, setStopUpdateVolume] = useState<number | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(0);
+  const [dataArray, setDataArray] = useState<number[]>([0]);
+  const [lastClapTime, setLastClapTime] = useState<Date | null>(null);
   const clapDetectorComponent = {
     stream,
     mediaRecorder,
@@ -29,6 +31,10 @@ export default function VoiceButton() {
     setStopUpdateVolume,
     volume,
     setVolume,
+    dataArray,
+    setDataArray,
+    lastClapTime, 
+    setLastClapTime
   };
 
   const recognitionRef = VoiceToText({

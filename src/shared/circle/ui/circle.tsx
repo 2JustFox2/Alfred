@@ -1,7 +1,9 @@
 export default function Circle(volume) {
   const radius = volume * 400 + 250;
+  
   return (
     <>
+
       <div
         style={{
           width: `${radius}px`,
@@ -14,7 +16,7 @@ export default function Circle(volume) {
           transform: "translate(-50%, -50%)",
           zIndex: "-1"
         }}
-      ></div>
+        ></div>
     </>
   );
 }
