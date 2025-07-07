@@ -63,6 +63,8 @@ async function startClapDetector({
   setDataArray,
   lastClapTime,
   setLastClapTime,
+  soundCache: soundsCache,
+  setSoundCache,
 }) {
   if (isRecording) return;
   setIsRecording(true);
@@ -88,38 +90,39 @@ async function startClapDetector({
       const average = sum / bufferLength;
       const volume = average / 256;
 
-      const highFreqStart = Math.floor(
-        2000 / audioContext.current.sampleRate / analyser.fftSize
-      );
-      const highFreqEnd = Math.floor(
-        4000 / audioContext.current.sampleRate / analyser.fftSize
-      );
+      soundsCache.push(volume);
+      soundsCache.shift();
+      setSoundCache(soundsCache);
 
-      let highFreqEnergy = 0;
-      for (let i = highFreqStart; i <= highFreqEnd; i++) {
-        highFreqEnergy += dataArray[i];
+      const soundDifference = new Array(soundsCache.length);
+      const averageSound =
+        soundsCache.reduce(function (a, b) {
+          return a + b;
+        }, 0) / soundsCache.length;
+
+      for (let i = 0; i < soundsCache.length; i++) {
+        soundDifference[i] = soundsCache[i] - averageSound;
       }
-      const avgHighFreqEnergy =
-        highFreqEnergy / (highFreqEnd - highFreqStart + 1);
 
-      const CLAP_THRESHOLD = 150;
       const CLAP_COOLDOWN_MS = 500;
 
       if (
-        avgHighFreqEnergy > CLAP_THRESHOLD &&
-        Date.now() - lastClapTime > CLAP_COOLDOWN_MS
+        Date.now() - lastClapTime > CLAP_COOLDOWN_MS &&
+        Math.round(soundDifference[0] * 100) <= -4 &&
+        Math.round(soundDifference[1] * 100) >= 6 &&
+        Math.round(soundDifference[9] * 100) <= -2
       ) {
         console.log("Хлопок обнаружен! 👏");
-        lastClapTime = Date.now()
+        lastClapTime = Date.now();
         setLastClapTime(lastClapTime);
       }
 
       setVolume(volume);
       setDataArray(dataArray);
-      setStopUpdateVolume(window.requestAnimationFrame(updateVolume));
     }
 
-    updateVolume();
+    const stopUpdateVolume = setInterval(updateVolume, 100);
+    setStopUpdateVolume(stopUpdateVolume);
 
     if (!mediaRecorder.current) {
       throw new Error("MediaRecorder not initialized");
@@ -146,7 +149,7 @@ async function stopClapDetector({
   try {
     if (stopUpdateVolume) {
       console.log(`stopUpdateVolume ${stopUpdateVolume}`);
-      window.cancelAnimationFrame(stopUpdateVolume);
+      clearInterval(stopUpdateVolume);
       setStopUpdateVolume(null);
     }
 
