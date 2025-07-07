@@ -1,10 +1,7 @@
 import { Button } from "../../shared/button";
 import { Circle } from "../../shared/circle";
 import { VoiceToText } from "../../features/speech-recognition";
-import {
-  startClapDetector,
-  stopClapDetector,
-} from "../../features/clap-detection/";
+import { ClapDetector } from "../../features/clap-detection/";
 import { useState } from "react";
 import React from "react";
 
@@ -14,31 +11,30 @@ export default function VoiceButton() {
   const [error, setError] = useState<string | null>(null);
 
   const stream = React.useRef<MediaStream | null>(null);
-  const mediaRecorder = React.useRef<MediaRecorder | null>(null);
   const audioContext = React.useRef<AudioContext | null>(null);
   const [stopUpdateVolume, setStopUpdateVolume] = useState<number | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [dataArray, setDataArray] = useState<number[]>([0]);
   const [lastClapTime, setLastClapTime] = useState<Date | null>(null);
-  const [soundCache, setSoundCache] = useState<number[]>([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-  const clapDetectorComponent = {
+  const [soundCache, setSoundCache] = useState<number[]>([
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ]);
+  const clapDetector = new ClapDetector({
     stream,
-    mediaRecorder,
     isRecording,
     setIsRecording,
     audioContext,
     stopUpdateVolume,
     setStopUpdateVolume,
-    volume,
     setVolume,
-    dataArray,
     setDataArray,
     lastClapTime,
     setLastClapTime,
     soundCache,
-    setSoundCache
-  };
+    setSoundCache,
+  });
 
   const recognitionRef = VoiceToText({
     setIsListening,
@@ -50,7 +46,7 @@ export default function VoiceButton() {
     console.log("startListening called");
     try {
       // start clap detctor
-      await startClapDetector(clapDetectorComponent);
+      await clapDetector.start();
       // start voice to text
       recognitionRef.current?.start();
 
@@ -64,7 +60,7 @@ export default function VoiceButton() {
     console.log("stopListening called");
     try {
       // start clap detctor
-      await stopClapDetector(clapDetectorComponent);
+      await clapDetector.stop();
       // start voice to text
       recognitionRef.current?.stop();
 

@@ -1,146 +1,164 @@
-async function initMicrophone({
-  stream,
-  isRecording,
-  setIsRecording,
-  audioContext,
-}) {
-  if (isRecording) return;
+class ClapDetector {
+  stream: React.RefObject<MediaStream | null>;
+  isRecording: boolean;
+  setIsRecording: React.Dispatch<React.SetStateAction<boolean>>;
+  stopUpdateVolume: number | null;
+  setStopUpdateVolume: React.Dispatch<React.SetStateAction<number | null>>;
+  setVolume: React.Dispatch<React.SetStateAction<number>>;
+  setDataArray: React.Dispatch<React.SetStateAction<number[]>>;
+  lastClapTime: number;
+  setLastClapTime: React.Dispatch<React.SetStateAction<number>>;
+  soundCache: number[];
+  setSoundCache: React.Dispatch<React.SetStateAction<number[]>>;
+  audioContext: React.RefObject<AudioContext | null>;
 
-  try {
-    stream.current = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-      },
-    });
-
-    audioContext.current = new AudioContext();
-    const source = audioContext.current.createMediaStreamSource(stream.current);
-    const analyser = audioContext.current.createAnalyser();
-    analyser.fftSize = 512;
-
-    source.connect(analyser);
-    analyser.connect(audioContext.current.destination);
-    const dataArray = new Float32Array(analyser.fftSize);
-    analyser.getFloatFrequencyData(dataArray);
-
-    return analyser;
-  } catch (error) {
-    console.error("Error initializing microphone:", error);
-    cleanup({ stream, isRecording, setIsRecording });
-    throw error;
+  constructor({
+    stream,
+    isRecording,
+    setIsRecording,
+    stopUpdateVolume,
+    setStopUpdateVolume,
+    setVolume,
+    setDataArray,
+    lastClapTime,
+    setLastClapTime,
+    soundCache,
+    setSoundCache,
+    audioContext,
+  }) {
+    this.stream = stream;
+    this.isRecording = isRecording;
+    this.setIsRecording = setIsRecording;
+    this.stopUpdateVolume = stopUpdateVolume;
+    this.setStopUpdateVolume = setStopUpdateVolume;
+    this.setVolume = setVolume;
+    this.setDataArray = setDataArray;
+    this.lastClapTime = lastClapTime;
+    this.setLastClapTime = setLastClapTime;
+    this.soundCache = soundCache;
+    this.setSoundCache = setSoundCache;
+    this.audioContext = audioContext;
   }
-}
 
-async function startClapDetector({
-  stream,
-  isRecording,
-  setIsRecording,
-  audioContext,
-  setStopUpdateVolume,
-  setVolume,
-  setDataArray,
-  lastClapTime,
-  setLastClapTime,
-  soundCache: soundsCache,
-  setSoundCache,
-}) {
-  if (isRecording) return;
-  setIsRecording(true);
+  async initMicrophone() {
+    if (this.isRecording) return;
 
-  try {
-    const analyser = await initMicrophone({
-      stream,
-      isRecording,
-      setIsRecording,
-      audioContext,
-    });
+    try {
+      this.stream.current = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
 
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+      this.audioContext.current = new AudioContext();
+      const source = this.audioContext.current.createMediaStreamSource(
+        this.stream.current
+      );
+      const analyser = this.audioContext.current.createAnalyser();
+      analyser.fftSize = 512;
 
-    function updateVolume() {
-      analyser.getByteFrequencyData(dataArray);
-      let sum = 0;
-      for (let i = 0; i < bufferLength; i++) {
-        sum += dataArray[i];
+      source.connect(analyser);
+      analyser.connect(this.audioContext.current.destination);
+      const dataArray = new Float32Array(analyser.fftSize);
+      analyser.getFloatFrequencyData(dataArray);
+
+      return analyser;
+    } catch (error) {
+      console.error("Error initializing microphone:", error);
+      this.cleanup();
+      throw error;
+    }
+  }
+
+  async start() {
+    if (this.isRecording) return;
+    this.setIsRecording(true);
+
+    try {
+      const analyser = await this.initMicrophone();
+      if (!analyser) return;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const updateVolume = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+        const volume = average / 256;
+
+        this.soundCache.push(volume);
+        this.soundCache.shift();
+        this.setSoundCache([...this.soundCache]);
+
+        const soundDifference = new Array(this.soundCache.length);
+        const averageSound =
+          this.soundCache.reduce((a, b) => a + b, 0) / this.soundCache.length;
+
+        for (let i = 0; i < this.soundCache.length; i++) {
+          soundDifference[i] = this.soundCache[i] - averageSound;
+        }
+
+        const CLAP_COOLDOWN_MS = 500;
+
+        if (
+          Date.now() - this.lastClapTime > CLAP_COOLDOWN_MS &&
+          Math.round(soundDifference[0] * 100) <= -4 &&
+          Math.round(soundDifference[1] * 100) >= 6 &&
+          Math.round(soundDifference[9] * 100) <= -2
+        ) {
+          console.log("Хлопок обнаружен! 👏");
+          this.lastClapTime = Date.now();
+          this.setLastClapTime(this.lastClapTime);
+        }
+
+        this.setVolume(volume);
+        this.setDataArray([...dataArray]);
+      };
+
+      const stopUpdateVolume = setInterval(updateVolume, 100);
+      this.setStopUpdateVolume(stopUpdateVolume);
+    } catch (error) {
+      console.error("Failed to start listening:", error);
+      this.cleanup();
+    }
+  }
+
+  async stop() {
+    if (!this.isRecording) return;
+
+    try {
+      if (this.stopUpdateVolume) {
+        clearInterval(this.stopUpdateVolume);
+        this.setStopUpdateVolume(null);
       }
-      const average = sum / bufferLength;
-      const volume = average / 256;
 
-      soundsCache.push(volume);
-      soundsCache.shift();
-      setSoundCache(soundsCache);
-
-      const soundDifference = new Array(soundsCache.length);
-      const averageSound =
-        soundsCache.reduce(function (a, b) {
-          return a + b;
-        }, 0) / soundsCache.length;
-
-      for (let i = 0; i < soundsCache.length; i++) {
-        soundDifference[i] = soundsCache[i] - averageSound;
+      if (this.stream.current) {
+        this.stream.current.getTracks().forEach((track) => track.stop());
       }
+    } catch (error) {
+      console.error("Failed to stop listening:", error);
+    } finally {
+      this.cleanup();
+    }
+  }
 
-      const CLAP_COOLDOWN_MS = 500;
+  cleanup() {
+    if (this.isRecording) this.setIsRecording(false);
 
-      if (
-        Date.now() - lastClapTime > CLAP_COOLDOWN_MS &&
-        Math.round(soundDifference[0] * 100) <= -4 &&
-        Math.round(soundDifference[1] * 100) >= 6 &&
-        Math.round(soundDifference[9] * 100) <= -2
-      ) {
-        console.log("Хлопок обнаружен! 👏");
-        lastClapTime = Date.now();
-        setLastClapTime(lastClapTime);
-      }
-
-      setVolume(volume);
-      setDataArray(dataArray);
+    if (this.stream.current) {
+      this.stream.current.getTracks().forEach((track) => track.stop());
     }
 
-    const stopUpdateVolume = setInterval(updateVolume, 100);
-    setStopUpdateVolume(stopUpdateVolume);
-  } catch (error) {
-    console.error("Failed to start listening:", error);
-    cleanup({ stream, isRecording, setIsRecording });
+    this.stream.current = null;
+
+    console.log("Cleanup complete");
   }
 }
 
-async function stopClapDetector({
-  stream,
-  isRecording,
-  setIsRecording,
-  stopUpdateVolume,
-  setStopUpdateVolume,
-}) {
-  if (!isRecording) return;
-
-  try {
-    if (stopUpdateVolume) {
-      clearInterval(stopUpdateVolume);
-      setStopUpdateVolume(null);
-    }
-
-    stream.current.getTracks().forEach((track) => track.stop());
-  } catch (error) {
-    console.error("Failed to stop listening:", error);
-  } finally {
-    cleanup({ stream, isRecording, setIsRecording });
-  }
-}
-
-function cleanup({ stream, isRecording, setIsRecording }) {
-  if (isRecording) setIsRecording(false);
-
-  if (stream.current) {
-    stream.current.getTracks().forEach((track) => track.stop());
-  }
-
-  stream.current = null;
-
-  console.log("Cleanup complete");
-}
-
-export { startClapDetector, stopClapDetector };
+export default ClapDetector;
