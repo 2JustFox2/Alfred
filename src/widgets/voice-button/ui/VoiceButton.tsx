@@ -1,7 +1,7 @@
-import { Button } from "../../shared/button";
-import { Circle } from "../../shared/circle";
-import { VoiceToText } from "../../features/speech-recognition";
-import { ClapDetector } from "../../features/clap-detection/";
+import { Button } from "../../../shared/button";
+import { Circle } from "../../../shared/circle";
+import { VoiceToText } from "../../../features/speech-recognition";
+import { ClapDetector } from "../../../features/clap-detection";
 import { useState } from "react";
 import React from "react";
 
