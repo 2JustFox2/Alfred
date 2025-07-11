@@ -19,10 +19,17 @@ export default function Chat() {
     }
   }
 
-  return (
+  return {
+    content: {
+        inputValue,
+        setInputValue,
+        outputValue,
+        setOutputValue
+    },
+    ui: (
     <div>
       {ChatInput(inputValue, handleChange, handleKeyDown) }
       {ChatOutput(outputValue)}
     </div>
-  );
+  )};
 }

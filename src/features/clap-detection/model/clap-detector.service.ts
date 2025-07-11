@@ -72,7 +72,7 @@ class ClapDetector {
     }
   }
 
-  async start() {
+  async start(handleClap) {
     if (this.isRecording) return;
     this.setIsRecording(true);
 
@@ -112,7 +112,7 @@ class ClapDetector {
           Math.round(soundDifference[1] * 100) >= 6 &&
           Math.round(soundDifference[9] * 100) <= -2
         ) {
-          console.log("Хлопок обнаружен! 👏");
+          handleClap()
           this.lastClapTime = Date.now();
           this.setLastClapTime(this.lastClapTime);
         }

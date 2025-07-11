@@ -1,13 +1,11 @@
 import './styles/App.css'
-import { VoiceButton } from '../widgets/voice-button'
-import { Chat } from '../widgets/chat'
+import MainPage from '../pages/main/ui/main'
 
 function App() {
 
   return (
     <>
-      <Chat/>
-      <VoiceButton/>
+      <MainPage/>
     </>
   )
 }

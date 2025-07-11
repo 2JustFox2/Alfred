@@ -5,7 +5,7 @@ import { ClapDetector } from "../../../features/clap-detection";
 import { useState } from "react";
 import React from "react";
 
-export default function VoiceButton() {
+export default function VoiceButton(handleClap) {
   const [isListening, setIsListening] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export default function VoiceButton() {
     console.log("startListening called");
     try {
       // start clap detctor
-      await clapDetector.start();
+      await clapDetector.start(handleClap);
       // start voice to text
       recognitionRef.current?.start();
 
@@ -79,7 +79,12 @@ export default function VoiceButton() {
     }
   }
 
-  return (
+  return {
+    content: {
+      text,
+      error,
+    },
+    ui: (
     <>
       {Circle(volume)}
       {Button({
@@ -89,5 +94,5 @@ export default function VoiceButton() {
         error,
       })}
     </>
-  );
+  )};
 }
