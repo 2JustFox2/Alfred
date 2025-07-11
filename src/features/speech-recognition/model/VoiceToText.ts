@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-const VoiceToText = ({setIsListening, setText, setError}) => {
+const VoiceToText = ({setIsListening, setInputValue, setError}) => {
 
   // Создаем распознаватель речи
   const recognitionRef = React.useRef<SpeechRecognition | null>(null);
@@ -30,7 +30,7 @@ const VoiceToText = ({setIsListening, setText, setError}) => {
     recognition.onresult = (event) => {
       let interimTranscript = "";
       let finalTranscript = "";
-
+  
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
@@ -39,21 +39,21 @@ const VoiceToText = ({setIsListening, setText, setError}) => {
           interimTranscript += transcript;
         }
       }
+  
+      setInputValue(finalTranscript || interimTranscript);
+  };
 
-      setText(finalTranscript || interimTranscript);
-    };
-
-    recognition.onerror = (event) => {
-      setError(`Ошибка распознавания: ${event.error}`);
-      setIsListening(false);
-    };
+    // recognition.onerror = (event) => {
+    //   setError(`Ошибка распознавания: ${event.error}`);
+    //   setIsListening(false);
+    // };
 
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
     };
-  }, [setError, setIsListening, setText]);
+  }, [setError, setIsListening, setInputValue]);
 
   return recognitionRef
 };

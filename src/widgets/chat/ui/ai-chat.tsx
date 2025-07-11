@@ -1,34 +1,39 @@
-import { useState } from "react";
 import { ChatInput } from "../../../shared/input";
 import { ChatOutput } from "../../../shared/output";
 import { generate } from "../../../features/artificial intelligence";
+import React, { useCallback } from "react";
 
-export default function Chat() {
-  const [inputValue, setInputValue] = useState("");
-  const [outputValue, setOutputValue] = useState("");
+export default function Chat([inputValueRef, setInputValue], [outputValue, setOutputValue]) {
 
   function handleChange(event) {
     setInputValue(event.target.value);
+    console.log(inputValueRef.current)
   };
 
   function handleKeyDown(event) {
     if (event.key === 'Enter') {
-        console.log(inputValue)
-        generate(inputValue, setOutputValue)
-        setInputValue('')
+        clearAndGenerate()
     }
   }
 
+  const clearAndGenerate = useCallback(() => {
+    if(inputValueRef.current.length > 5){
+      generate(inputValueRef.current, setOutputValue)
+    }
+    setInputValue('')
+  }, [inputValueRef, setOutputValue, setInputValue]); 
+  
   return {
     content: {
-        inputValue,
+        inputValue: inputValueRef.current,
         setInputValue,
         outputValue,
-        setOutputValue
+        setOutputValue,
+        clearAndGenerate
     },
     ui: (
     <div>
-      {ChatInput(inputValue, handleChange, handleKeyDown) }
+      {ChatInput(inputValueRef.current, handleChange, handleKeyDown) }
       {ChatOutput(outputValue)}
     </div>
   )};

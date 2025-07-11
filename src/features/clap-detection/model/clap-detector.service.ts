@@ -60,7 +60,7 @@ class ClapDetector {
       analyser.fftSize = 512;
 
       source.connect(analyser);
-      analyser.connect(this.audioContext.current.destination);
+      // analyser.connect(this.audioContext.current.destination);
       const dataArray = new Float32Array(analyser.fftSize);
       analyser.getFloatFrequencyData(dataArray);
 

@@ -5,9 +5,8 @@ import { ClapDetector } from "../../../features/clap-detection";
 import { useState } from "react";
 import React from "react";
 
-export default function VoiceButton(handleClap) {
+export default function VoiceButton(handleClap, setInputValue) {
   const [isListening, setIsListening] = useState(false);
-  const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const stream = React.useRef<MediaStream | null>(null);
@@ -38,7 +37,7 @@ export default function VoiceButton(handleClap) {
 
   const recognitionRef = VoiceToText({
     setIsListening,
-    setText,
+    setInputValue,
     setError,
   });
 
@@ -81,7 +80,6 @@ export default function VoiceButton(handleClap) {
 
   return {
     content: {
-      text,
       error,
     },
     ui: (
@@ -90,7 +88,6 @@ export default function VoiceButton(handleClap) {
       {Button({
         toggleListening,
         isListening,
-        text,
         error,
       })}
     </>
