@@ -1,7 +1,7 @@
 import ollama from "ollama/browser";
 
 export async function generate(content: string, setOutputValue: React.Dispatch<React.SetStateAction<string>>) {
-  const promt = 'Пиши на русском. Пиши кратко, максимум 100 слов. \n'
+  const promt = 'Пиши на русском. Пиши очень кратко, максимум 25 слов. \n'
   const response = await ollama.chat({
     model: 'llama3',
     messages: [{ role: 'user', content: content +  promt}],
@@ -13,4 +13,6 @@ export async function generate(content: string, setOutputValue: React.Dispatch<R
     outputValue += part.message.content
     setOutputValue(outputValue)
   }
+
+  return outputValue
 }

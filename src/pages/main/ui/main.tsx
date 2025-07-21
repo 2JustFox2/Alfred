@@ -10,9 +10,25 @@ export default function MainPage() {
   const chat = Chat([inputValueRef, setInputValue], [outputValue, setOutputValue]);
 
   const handleClap = useCallback(() => {
-    console.log(inputValueRef.current); // will always be the latest value
-    console.log("Clap detected! 👏");
-    chat.content.clearAndGenerate();
+    Notification.requestPermission().then(function(permission) {
+      if (permission === 'granted') {
+           new Notification('Clap detected! 👏', {
+               body: inputValueRef.current,
+               icon: 'icon.png'
+           });
+       }
+    })
+
+    chat.content.clearAndGenerate()?.then((value) => {
+      Notification.requestPermission().then(function(permission) {
+         if (permission === 'granted') {
+              new Notification(inputValueRef.current, {
+                  body: value,
+                  icon: 'icon.png'
+              });
+          }
+       })
+    });
   }, [inputValueRef, chat]);
 
   const voiceButton = VoiceButton(handleClap, setInputValue);

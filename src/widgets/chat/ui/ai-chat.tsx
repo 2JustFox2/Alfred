@@ -18,9 +18,9 @@ export default function Chat([inputValueRef, setInputValue], [outputValue, setOu
 
   const clearAndGenerate = useCallback(() => {
     if(inputValueRef.current.length > 5){
-      generate(inputValueRef.current, setOutputValue)
+      setInputValue('')
+      return generate(inputValueRef.current, setOutputValue)
     }
-    setInputValue('')
   }, [inputValueRef, setOutputValue, setInputValue]); 
   
   return {
